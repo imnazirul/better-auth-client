@@ -22,43 +22,66 @@ export default function LoginForm() {
 
   const signIn = async () => {
     const data = await authClient.signIn.social({
+      requestSignUp: false,
       provider: "google",
-      callbackURL: "/dashboard",
-    });
-    console.log(data);
-  };
-
-  const handleSentOtp = async (event: FormEvent) => {
-    event.preventDefault();
-    const { data, error } = await authClient.emailOtp.sendVerificationOtp({
-      email: email, // required
-      type: "sign-in", // required
-    });
-    if (!error) {
-      setOtpSent(true);
-    }
-  };
-
-  const handleVerifyOtp = async (e: FormEvent) => {
-    e.preventDefault();
-    const { data, error } = await authClient.signIn.emailOtp({
-      email: email, // required
-      otp: String(otp), // required
+      callbackURL: "http://localhost:3000/dashboard",
       fetchOptions: {
         onSuccess: () => {
-          // router.push("/dashboard");
-          // console.log(data)
+          router.push("/dashboard");
         },
         onError: (ctx) => {
           alert(ctx.error.message);
         },
       },
     });
-    if (data?.user?.id) {
-      await authClient.updateUser({
-        name: "John Doe",
+    console.log(data);
+  };
+
+  const handleSentOtp = async (event: FormEvent) => {
+    event.preventDefault();
+    try {
+      setLoading(true);
+      const { data, error } = await authClient.emailOtp.sendVerificationOtp({
+        email: email, // required
+        type: "sign-in", // required
       });
+      if (!error) {
+        setOtpSent(true);
+      }
+    } catch (error) {
+    } finally {
+      setLoading(false);
     }
+  };
+
+  const handleVerifyOtp = async (e: FormEvent) => {
+    e.preventDefault();
+    try {
+      setLoading(true);
+      const { data, error } = await authClient.signIn.emailOtp({
+        email: email, // required
+        otp: String(otp), // required
+        fetchOptions: {
+          onSuccess: () => {
+            // router.push("/dashboard");
+            // console.log(data)
+          },
+          onError: (ctx) => {
+            alert(ctx.error.message);
+          },
+        },
+      });
+      console.log(data);
+    } catch (error) {
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleFetchUsers = async () => {
+    const data = await fetch("http://localhost:5000/api/users", {
+      credentials: "include",
+    });
     console.log(data);
   };
 
@@ -98,7 +121,7 @@ export default function LoginForm() {
         )}
 
         <button className="px-2 py-1 rounded border border-white">
-          {otpSent ? "Verify Otp" : "Sent Otp"}
+          {loading ? "Processing.." : otpSent ? "Verify Otp" : "Sent Otp"}
         </button>
       </form>
 
@@ -117,18 +140,25 @@ export default function LoginForm() {
         <div className="grid grid-cols-2 gap-4">
           <button
             onClick={() => signIn()}
-            className="flex items-center justify-center px-4 py-2 border rounded hover:bg-gray-50"
+            className="flex items-center justify-center cursor-pointer px-4 py-2 border rounded hover:bg-gray-50 hover:text-gray-700"
           >
             Google
           </button>
-          {/* <button
-            onClick={() => handleSocialLogin("apple")}
-            className="flex items-center justify-center px-4 py-2 border rounded hover:bg-gray-50"
+          <button
+            // onClick={() => handleSocialLogin("apple")}
+            className="flex items-center justify-center cursor-pointer px-4 py-2 hover:text-gray-700 border rounded hover:bg-gray-50"
           >
             Apple
-          </button> */}
+          </button>
         </div>
       </div>
+      {/* <button
+        onClick={() => {
+          handleFetchUsers();
+        }}
+      >
+        Get User
+      </button> */}
 
       <p className="mt-6 text-center text-sm">
         {"Don't"} have an account?{" "}
