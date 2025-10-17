@@ -24,7 +24,7 @@ export default function LoginForm() {
     const data = await authClient.signIn.social({
       requestSignUp: false,
       provider: "google",
-      callbackURL: "http://localhost:3000/dashboard",
+      callbackURL: process.env.NEXT_PUBLIC_CLIENT_URL + "/dashboard",
       fetchOptions: {
         onSuccess: () => {
           router.push("/dashboard");
@@ -79,7 +79,7 @@ export default function LoginForm() {
   };
 
   const handleFetchUsers = async () => {
-    const data = await fetch("http://localhost:5000/api/users", {
+    const data = await fetch(process.env.NEXT_PUBLIC_API_URL + "/api/users", {
       credentials: "include",
     });
     console.log(data);
